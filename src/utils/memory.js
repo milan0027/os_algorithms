@@ -1,14 +1,18 @@
 const msgMemory = []
+const constMemory = []
+const algorithm = ['Best Fit', 'First Fit', 'Worst Fit']
+const idMemory = []
 let freeSpace = 0;
 //allocating random bytes to each memory location
 for(let i=0;i<1001;i++)
 {
     msgMemory[i]=Math.floor(100*Math.random())+1
+    constMemory[i]=msgMemory[i]
     freeSpace+=msgMemory[i]
 }
 
 
-const addMsg = ({text, type})=>{
+const addMsg = ({text, type, count})=>{
 
     let bytes = text.length * 2
     if(bytes>freeSpace)
@@ -68,13 +72,23 @@ const addMsg = ({text, type})=>{
     {
         msgMemory[index]-=bytes
         freeSpace-=bytes
-        return { server_reply: `Message sent. Message memory = ${bytes} bytes allocated to block ${index} with space = ${msgMemory[index]+bytes} bytes on server. Current space left on Block = ${msgMemory[index]} bytes`,
+        idMemory[count] = {bytes: bytes, index: index}
+        let fragmentation = msgMemory[index]/constMemory[index]*100
+        return { server_reply: `Message sent using ${algorithm[type-1]}. Message memory = ${bytes} bytes allocated to block ${index} with space = ${msgMemory[index]+bytes} bytes on server. Current space left on Block = ${msgMemory[index]} bytes
+        . Internal Fragmentation = ${fragmentation}%`,
     index: '1'}
     }
     }
    
-
+const removeMsg = id => {
+    const index = idMemory[id].index
+    const bytes = idMemory[id].bytes
+    msgMemory[index]+=bytes
+    freeSpace+=bytes
+    return { server_reply: `Message removed. Message memory = ${bytes} bytes freed from block ${index}. Current space left on Block = ${msgMemory[index]} bytes.`}
+}
 
 module.exports = {
-    addMsg
+    addMsg,
+    removeMsg
 }

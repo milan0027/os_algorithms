@@ -22,6 +22,7 @@
 
 
                 <form id="message-form">
+
                     <input type="text" name="message" placeholder="Message" autocomplete="off" required>
                     <select name="algorithm" id="type" style="margin-right: 10px">
                         <option value="1">Best Fit</option>
@@ -39,22 +40,25 @@
 
 
     <script id="msg-template" type="text/html">
-        <div class="message">
+        <div class="message" id={{div_id}}>
             <p>
                 <span class="message__name">{{username}}</span>
                 <span class="message__meta">{{createdAt}}</span>
             </p>
-            <p>{{message}}</p>
+            <p>{{message}}   </p>
+           
         </div>
     </script>
 
+
     <script id="loc-msg-template" type="text/html">
 
-        <div class="message">
+        <div class="message" id="{{div_id}}">
             <p>
                 <span class="message__name">{{username}}</span>
                 <span class="message__meta">{{createdAt}}</span>
             </p>
+            <p>{{message}}  <button onclick="remove(this)"> Delete</button> </p>
             
         </div>
         
@@ -72,6 +76,8 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/mustache.js/3.0.1/mustache.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.22.2/moment.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qs/6.6.0/qs.min.js"></script>
+  
+
     <script src="/socket.io/socket.io.js"></script>
     <script src="/js/chat.js"></script>
 </body>

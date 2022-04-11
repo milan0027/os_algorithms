@@ -8,7 +8,7 @@ const Filter  = require('bad-words')
 const {generateMessage} = require('./utils/messages')
 
 const { addUser, removeUser, getUser, getUsersInRoom } = require('./utils/users')
-const { addMsg } = require('./utils/memory')
+const { addMsg, removeMsg } = require('./utils/memory')
 const app  =  express()
 
 const server = http.createServer(app)
@@ -18,7 +18,7 @@ const port = process.env.PORT  || 3000
 const publicDirectoryPath = path.join(__dirname, '../public')
 
 app.use(express.static(publicDirectoryPath))
-
+let count = 0
 io.on('connection', (socket) =>{
     console.log('New web socket connection')
 
@@ -32,9 +32,9 @@ io.on('connection', (socket) =>{
         }
         socket.join(user.room)
 
-        socket.emit('message', generateMessage('Chat Bot', 'Welcome'))
+        socket.emit('message', generateMessage('Chat Bot', `Welcome ${user.username} !!!`, ++count))
 
-        socket.broadcast.to(user.room).emit('message', generateMessage('Chat Bot', `${user.username} has joined!!!`))
+        socket.broadcast.to(user.room).emit('message', generateMessage('Chat Bot', `${user.username} has joined!!!`, ++count))
         io.to(user.room).emit('roomdata', {
             room: user.room,
             users: getUsersInRoom(user.room)
@@ -45,6 +45,14 @@ io.on('connection', (socket) =>{
 
     })
     
+    socket.on('sendRemoveId', id => {
+        const user = getUser(socket.id)
+        const reply = removeMsg(id)
+
+        io.to(user.room).emit('removeMsg', id)
+        socket.emit('message', generateMessage('Server Bot', reply.server_reply, ++count))
+    })
+
     socket.on('sendMessage', (msg, type, callback)=>{
         const user = getUser(socket.id)
         const filter = new Filter()
@@ -53,25 +61,24 @@ io.on('connection', (socket) =>{
         {
             return callback('bad-words not allowed')
         }
-        const reply = addMsg({text: msg, type})
+        ++count
+        const reply = addMsg({text: msg, type, count})
         if(reply.index == -1)
         {
-
-            socket.emit('message', generateMessage('Chat Bot', reply.server_reply))
+            socket.emit('message', generateMessage('Server Bot', reply.server_reply, ++count))
             callback()
-
         }
         
       
-        io.to(user.room).emit('message', generateMessage(user.username, msg))
-        socket.emit('message', generateMessage('Server Bot', reply.server_reply))
+        io.to(user.room).emit('message', generateMessage(user.username, msg, count, count))
+        socket.emit('message', generateMessage('Server Bot', reply.server_reply, ++count))
         callback()
     })
 
     socket.on('disconnect', ()=>{
         const user = removeUser(socket.id)
         if(user){
-            io.to(user.room).emit('message', generateMessage('Chat Bot', `${user.username} has left!!!`))
+            io.to(user.room).emit('message', generateMessage('Chat Bot', `${user.username} has left!!!`, ++count))
             io.to(user.room).emit('roomdata', {
                 room: user.room,
                 users: getUsersInRoom(user.room)

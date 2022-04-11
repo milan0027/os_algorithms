@@ -42,14 +42,25 @@ const autoscroll = () =>{
 
 }
 
+function remove(e) {
 
+    const id = e.parentElement.parentElement.id
+    console.log(e.parentElement.parentElement.id)
+    socket.emit('sendRemoveId', id, () =>{
+            console.log('remove request sent')
+    } )
+
+}
 socket.on('message', (msg)=>{
 
-    const html = Mustache.render(messageTemplate,{
+    const html = Mustache.render(msg.username==username?locationTemplate:messageTemplate,{
         username: msg.username,
         message: msg.text,
-        createdAt: moment(msg.createdAt).format('hh:mm A')
+        createdAt: moment(msg.createdAt).format('hh:mm A'),
+        div_id: msg.id
     })
+   
+ 
     _messages.insertAdjacentHTML('beforeend', html)
     autoscroll()
 })
@@ -63,6 +74,10 @@ socket.on('roomdata', ({room, users}) =>{
         users
     })
     document.querySelector('#sidebar').innerHTML = html
+})
+
+socket.on('removeMsg', id =>{
+    document.getElementById(id).remove()
 })
 
 _messageForm.addEventListener('submit', (e)=>{
